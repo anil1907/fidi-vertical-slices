@@ -31,6 +31,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
+    public DbSet<Domain.Users.User> Users => Set<Domain.Users.User>();
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
     {
         foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
