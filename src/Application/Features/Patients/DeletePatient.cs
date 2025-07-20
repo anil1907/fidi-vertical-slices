@@ -14,7 +14,7 @@ namespace VerticalSliceArchitecture.Application.Features.Patients;
 public class DeletePatientController : ApiControllerBase
 {
     [HttpDelete("/api/patients/{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         var result = await Mediator.Send(new DeletePatientCommand(id));
 
@@ -22,7 +22,7 @@ public class DeletePatientController : ApiControllerBase
     }
 }
 
-public record DeletePatientCommand(int Id) : IRequest<ErrorOr<Success>>;
+public record DeletePatientCommand(Guid Id) : IRequest<ErrorOr<Success>>;
 
 internal sealed class DeletePatientCommandHandler(
     ApplicationDbContext context,

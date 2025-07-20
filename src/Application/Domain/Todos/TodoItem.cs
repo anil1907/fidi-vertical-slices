@@ -5,8 +5,6 @@ namespace VerticalSliceArchitecture.Application.Domain.Todos;
 
 public class TodoItem : AuditableEntity, IHasDomainEvent
 {
-    public int Id { get; set; }
-
     public int ListId { get; set; }
 
     public string? Title { get; set; }

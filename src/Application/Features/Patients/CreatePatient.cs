@@ -1,18 +1,15 @@
 using ErrorOr;
-
 using FluentValidation;
-
 using MediatR;
-
 using Microsoft.AspNetCore.Mvc;
-
 using VerticalSliceArchitecture.Application.Common;
-using VerticalSliceArchitecture.Application.Common.Interfaces;
+using VerticalSliceArchitecture.Application.Common.Security;
 using VerticalSliceArchitecture.Application.Domain.Patients;
 using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 
 namespace VerticalSliceArchitecture.Application.Features.Patients;
 
+[Authorize]
 public class CreatePatientController : ApiControllerBase
 {
     [HttpPost("/api/patients")]
@@ -27,7 +24,7 @@ public class CreatePatientController : ApiControllerBase
 }
 
 public record CreatePatientCommand(string Name, int Age, string Phone, string Email, string? Notes, DateTime? LastVisit)
-    : IRequest<ErrorOr<int>>;
+    : IRequest<ErrorOr<Guid>>;
 
 internal sealed class CreatePatientCommandValidator : AbstractValidator<CreatePatientCommand>
 {
@@ -48,20 +45,13 @@ internal sealed class CreatePatientCommandValidator : AbstractValidator<CreatePa
 }
 
 internal sealed class CreatePatientCommandHandler(
-    ApplicationDbContext context,
-    ICurrentUserService currentUserService)
-    : IRequestHandler<CreatePatientCommand, ErrorOr<int>>
+    ApplicationDbContext context)
+    : IRequestHandler<CreatePatientCommand, ErrorOr<Guid>>
 {
-    private readonly ApplicationDbContext _context = context;
-    private readonly ICurrentUserService _currentUserService = currentUserService;
-
-    public async Task<ErrorOr<int>> Handle(CreatePatientCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Guid>> Handle(CreatePatientCommand request, CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(_currentUserService.UserId!);
-
         var patient = new Patient
         {
-            UserId = userId,
             Name = request.Name,
             Age = request.Age,
             Phone = request.Phone,
@@ -70,8 +60,8 @@ internal sealed class CreatePatientCommandHandler(
             LastVisit = request.LastVisit,
         };
 
-        _context.Patients.Add(patient);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Patients.Add(patient);
+        await context.SaveChangesAsync(cancellationToken);
 
         return patient.Id;
     }

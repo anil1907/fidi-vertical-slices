@@ -22,7 +22,7 @@ public class GetPatientsController : ApiControllerBase
     }
 }
 
-public record PatientDto(int Id, string Name, int Age, string Phone, string Email, string? Notes, DateTime? LastVisit);
+public record PatientDto(Guid Id, string Name, int Age, string Phone, string Email, string? Notes, DateTime? LastVisit);
 
 public record GetPatientsQuery : IRequest<ErrorOr<List<PatientDto>>>;
 

@@ -9,6 +9,8 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
 {
     public void Configure(EntityTypeBuilder<Patient> builder)
     {
+        builder.ToTable("patients", "patient");
+
         builder.Ignore(p => p.DomainEvents);
 
         builder.Property(p => p.Name)

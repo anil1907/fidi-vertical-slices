@@ -4,8 +4,6 @@ namespace VerticalSliceArchitecture.Application.Domain.Patients;
 
 public class Patient : AuditableEntity, IHasDomainEvent
 {
-    public int Id { get; set; }
-
     public Guid UserId { get; set; }
 
     public string Name { get; set; } = default!;

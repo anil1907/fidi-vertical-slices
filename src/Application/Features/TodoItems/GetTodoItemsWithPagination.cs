@@ -27,7 +27,7 @@ public class GetTodoItemsWithPaginationController : ApiControllerBase
     }
 }
 
-public record TodoItemBriefResponse(int Id, int ListId, string? Title, bool Done);
+public record TodoItemBriefResponse(Guid Id, int ListId, string? Title, bool Done);
 
 public record GetTodoItemsWithPaginationQuery(int ListId, int PageNumber = 1, int PageSize = 10) : IRequest<ErrorOr<PaginatedList<TodoItemBriefResponse>>>;
 

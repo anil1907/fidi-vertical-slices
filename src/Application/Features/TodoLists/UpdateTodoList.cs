@@ -16,7 +16,7 @@ namespace VerticalSliceArchitecture.Application.Features.TodoLists;
 public class UpdateTodoListController : ApiControllerBase
 {
     [HttpPut("/api/todo-lists/{id}")]
-    public async Task<IActionResult> Update(int id, UpdateTodoListCommand command)
+    public async Task<IActionResult> Update(Guid id, UpdateTodoListCommand command)
     {
         if (id != command.Id)
         {
@@ -35,7 +35,7 @@ public class UpdateTodoListController : ApiControllerBase
 
 public class UpdateTodoListCommand : IRequest<ErrorOr<Success>>
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     public string? Title { get; set; }
 }

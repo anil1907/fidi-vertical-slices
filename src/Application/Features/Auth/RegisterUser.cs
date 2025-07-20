@@ -20,7 +20,7 @@ public class RegisterUserController : ApiControllerBase
     }
 }
 
-public record RegisterUserCommand(string Email, string Password) : IRequest<ErrorOr<int>>;
+public sealed record RegisterUserCommand(string Email, string Password, string FirstName, string LastName, string ConfirmPassword) : IRequest<ErrorOr<Guid>>;
 
 internal sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {
@@ -39,6 +39,10 @@ internal sealed class RegisterUserCommandValidator : AbstractValidator<RegisterU
 
         RuleFor(c => c.Email)
             .MustAsync(BeUniqueEmail).WithMessage("Email already exists.");
+
+        RuleFor(c => c.ConfirmPassword)
+            .Equal(c => c.Password)
+            .WithMessage("Confirm password must match the password.");
     }
 
     private Task<bool> BeUniqueEmail(string email, CancellationToken cancellationToken)
@@ -47,20 +51,20 @@ internal sealed class RegisterUserCommandValidator : AbstractValidator<RegisterU
     }
 }
 
-internal sealed class RegisterUserCommandHandler(ApplicationDbContext context) : IRequestHandler<RegisterUserCommand, ErrorOr<int>>
+internal sealed class RegisterUserCommandHandler(ApplicationDbContext context) : IRequestHandler<RegisterUserCommand, ErrorOr<Guid>>
 {
-    private readonly ApplicationDbContext _context = context;
-
-    public async Task<ErrorOr<int>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
         var user = new User
         {
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            FirstName = request.FirstName,
+            LastName = request.LastName,
         };
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Users.Add(user);
+        await context.SaveChangesAsync(cancellationToken);
 
         return user.Id;
     }

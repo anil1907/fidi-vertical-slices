@@ -35,7 +35,7 @@ public class TodosVm
 
 public record PriorityLevelDto(int Value, string? Name);
 
-public record TodoListDto(int Id, string? Title, string? Colour, IList<TodoItemDto> Items)
+public record TodoListDto(Guid Id, string? Title, string? Colour, IList<TodoItemDto> Items)
 {
     public TodoListDto()
         : this(default, null, null, [])
@@ -43,7 +43,7 @@ public record TodoListDto(int Id, string? Title, string? Colour, IList<TodoItemD
     }
 }
 
-public record TodoItemDto(int Id, int ListId, string? Title, bool Done, int Priority, string? Note);
+public record TodoItemDto(Guid Id, int ListId, string? Title, bool Done, int Priority, string? Note);
 
 internal sealed class GetTodosQueryHandler(ApplicationDbContext context) : IRequestHandler<GetTodosQuery, ErrorOr<TodosVm>>
 {

@@ -17,7 +17,7 @@ namespace VerticalSliceArchitecture.Application.Features.Patients;
 public class UpdatePatientController : ApiControllerBase
 {
     [HttpPut("/api/patients/{id}")]
-    public async Task<IActionResult> Update(int id, UpdatePatientCommand command)
+    public async Task<IActionResult> Update(Guid id, UpdatePatientCommand command)
     {
         if (id != command.Id)
         {
@@ -30,7 +30,7 @@ public class UpdatePatientController : ApiControllerBase
     }
 }
 
-public record UpdatePatientCommand(int Id, string Name, int Age, string Phone, string Email, string? Notes, DateTime? LastVisit)
+public record UpdatePatientCommand(Guid Id, string Name, int Age, string Phone, string Email, string? Notes, DateTime? LastVisit)
     : IRequest<ErrorOr<Success>>;
 
 internal sealed class UpdatePatientCommandValidator : AbstractValidator<UpdatePatientCommand>

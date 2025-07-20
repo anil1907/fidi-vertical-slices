@@ -25,7 +25,7 @@ public class CreateTodoItemController : ApiControllerBase
     }
 }
 
-public record CreateTodoItemCommand(int ListId, string? Title) : IRequest<ErrorOr<int>>;
+public record CreateTodoItemCommand(int ListId, string? Title) : IRequest<ErrorOr<Guid>>;
 
 internal sealed class CreateTodoItemCommandValidator : AbstractValidator<CreateTodoItemCommand>
 {
@@ -37,11 +37,11 @@ internal sealed class CreateTodoItemCommandValidator : AbstractValidator<CreateT
     }
 }
 
-internal sealed class CreateTodoItemCommandHandler(ApplicationDbContext context) : IRequestHandler<CreateTodoItemCommand, ErrorOr<int>>
+internal sealed class CreateTodoItemCommandHandler(ApplicationDbContext context) : IRequestHandler<CreateTodoItemCommand, ErrorOr<Guid>>
 {
     private readonly ApplicationDbContext _context = context;
 
-    public async Task<ErrorOr<int>> Handle(CreateTodoItemCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Guid>> Handle(CreateTodoItemCommand request, CancellationToken cancellationToken)
     {
         var entity = new TodoItem
         {

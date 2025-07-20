@@ -34,11 +34,9 @@ internal sealed class LoginUserCommandValidator : AbstractValidator<LoginUserCom
 
 internal sealed class LoginUserCommandHandler(ApplicationDbContext context) : IRequestHandler<LoginUserCommand, ErrorOr<Success>>
 {
-    private readonly ApplicationDbContext _context = context;
-
     public async Task<ErrorOr<Success>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await _context.Users
+        var user = await context.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
 
         if (user is null)

@@ -26,7 +26,7 @@ public class CreateTodoListController : ApiControllerBase
     }
 }
 
-public record CreateTodoListCommand(string? Title) : IRequest<ErrorOr<int>>;
+public record CreateTodoListCommand(string? Title) : IRequest<ErrorOr<Guid>>;
 
 internal sealed class CreateTodoListCommandValidator : AbstractValidator<CreateTodoListCommand>
 {
@@ -49,11 +49,11 @@ internal sealed class CreateTodoListCommandValidator : AbstractValidator<CreateT
     }
 }
 
-internal sealed class CreateTodoListCommandHandler(ApplicationDbContext context) : IRequestHandler<CreateTodoListCommand, ErrorOr<int>>
+internal sealed class CreateTodoListCommandHandler(ApplicationDbContext context) : IRequestHandler<CreateTodoListCommand, ErrorOr<Guid>>
 {
     private readonly ApplicationDbContext _context = context;
 
-    public async Task<ErrorOr<int>> Handle(CreateTodoListCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Guid>> Handle(CreateTodoListCommand request, CancellationToken cancellationToken)
     {
         var todoList = new TodoList { Title = request.Title };
 
