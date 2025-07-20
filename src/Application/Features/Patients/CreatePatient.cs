@@ -1,9 +1,10 @@
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VerticalSliceArchitecture.Application.Common;
-using VerticalSliceArchitecture.Application.Common.Security;
 using VerticalSliceArchitecture.Application.Domain.Patients;
 using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 

@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 using VerticalSliceArchitecture.Application.Common;
 using VerticalSliceArchitecture.Application.Common.Interfaces;
-using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 using VerticalSliceArchitecture.Application.Common.Security;
+using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 
 namespace VerticalSliceArchitecture.Application.Features.Patients;
 

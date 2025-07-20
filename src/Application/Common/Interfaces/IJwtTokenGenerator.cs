@@ -1,6 +1,6 @@
-namespace VerticalSliceArchitecture.Application.Common.Interfaces;
-
 using VerticalSliceArchitecture.Application.Domain.Users;
+
+namespace VerticalSliceArchitecture.Application.Common.Interfaces;
 
 public interface IJwtTokenGenerator
 {
