@@ -9,6 +9,7 @@ using VerticalSliceArchitecture.Application.Common.Interfaces;
 using VerticalSliceArchitecture.Application.Infrastructure.Files;
 using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 using VerticalSliceArchitecture.Application.Infrastructure.Services;
+using VerticalSliceArchitecture.Application.Infrastructure.Authentication;
 
 namespace VerticalSliceArchitecture.Application;
 
@@ -51,6 +52,8 @@ public static class DependencyInjection
         services.AddTransient<ICsvFileBuilder, CsvFileBuilder>();
 
         services.AddSingleton<ICurrentUserService, CurrentUserService>();
+        services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 
         return services;
     }
