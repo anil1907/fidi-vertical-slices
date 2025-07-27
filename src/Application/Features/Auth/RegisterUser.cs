@@ -1,6 +1,8 @@
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VerticalSliceArchitecture.Application.Common;
@@ -10,6 +12,7 @@ using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 
 namespace VerticalSliceArchitecture.Application.Features.Auth;
 
+[Tags("Auth")]
 public class RegisterUserController : ApiControllerBase
 {
     [HttpPost("/api/register")]
@@ -23,20 +26,25 @@ public sealed record RegisterUserCommand(string Email, string Password, string F
 
 internal sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {
-    public RegisterUserCommandValidator(ApplicationDbContext context)
+    public RegisterUserCommandValidator()
     {
         RuleFor(c => c.Email)
             .NotEmpty()
-            .EmailAddress();
+            .WithMessage("E-posta adresi boş bırakılamaz.")
+            .EmailAddress()
+            .WithMessage("Geçerli bir e-posta adresi giriniz.");
 
         RuleFor(c => c.Password)
-            .MinimumLength(6);
-
-        RuleFor(c => c.Email);
+            .NotEmpty()
+            .WithMessage("Şifre boş bırakılamaz.")
+            .MinimumLength(6)
+            .WithMessage("Şifre en az 6 karakter olmalıdır.");
 
         RuleFor(c => c.ConfirmPassword)
+            .NotEmpty()
+            .WithMessage("Şifre tekrarı boş bırakılamaz.")
             .Equal(c => c.Password)
-            .WithMessage("Confirm password must match the password.");
+            .WithMessage("Şifre tekrarı, şifre ile aynı olmalıdır.");
     }
 }
 
@@ -48,7 +56,7 @@ internal sealed class RegisterUserCommandHandler(ApplicationDbContext context) :
 
         if (existingUser)
         {
-            throw new ApplicationException("Email adresi sistemde mevcut");
+            throw new AppException("Bu e-posta adresi zaten sistemde kayıtlı.");
         }
 
         var user = new User

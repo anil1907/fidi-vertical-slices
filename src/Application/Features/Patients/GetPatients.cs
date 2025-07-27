@@ -2,6 +2,7 @@ using ErrorOr;
 
 using MediatR;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 namespace VerticalSliceArchitecture.Application.Features.Patients;
 
 [Authorize]
+[Tags("Patients")]
 public class GetPatientsController : ApiControllerBase
 {
     [HttpGet("/api/patients")]
@@ -34,10 +36,8 @@ internal sealed class GetPatientsQueryHandler(
 {
     public async Task<ApiResponse<List<PatientDto>>> Handle(GetPatientsQuery request, CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(currentUserService.UserId!);
-
         var patients = await context.Patients
-            .Where(p => p.UserId == userId)
+            .Where(p => p.CreatedBy == currentUserService.UserId!)
             .OrderBy(p => p.Name)
             .Select(p => new PatientDto(p.Id, p.Name, p.Age, p.Phone, p.Email, p.Notes, p.LastVisit))
             .ToListAsync(cancellationToken);

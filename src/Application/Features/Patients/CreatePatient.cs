@@ -3,6 +3,7 @@ using FluentValidation;
 using MediatR;
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using VerticalSliceArchitecture.Application.Common;
 using VerticalSliceArchitecture.Application.Common.Models;
@@ -12,6 +13,7 @@ using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 namespace VerticalSliceArchitecture.Application.Features.Patients;
 
 [Authorize]
+[Tags("Patients")]
 public class CreatePatientController : ApiControllerBase
 {
     [HttpPost("/api/patients")]

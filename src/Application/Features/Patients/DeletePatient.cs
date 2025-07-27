@@ -2,6 +2,7 @@ using ErrorOr;
 
 using MediatR;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 namespace VerticalSliceArchitecture.Application.Features.Patients;
 
 [Authorize]
+[Tags("Patients")]
 public class DeletePatientController : ApiControllerBase
 {
     [HttpDelete("/api/patients/{id}")]
@@ -32,10 +34,8 @@ internal sealed class DeletePatientCommandHandler(
 {
     public async Task<ApiResponse<bool>> Handle(DeletePatientCommand request, CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(currentUserService.UserId!);
-
         var patient = await context.Patients
-            .FirstOrDefaultAsync(p => p.Id == request.Id && p.UserId == userId, cancellationToken);
+            .FirstOrDefaultAsync(p => p.Id == request.Id && p.CreatedBy == currentUserService.UserId!, cancellationToken);
 
         if (patient is null)
         {

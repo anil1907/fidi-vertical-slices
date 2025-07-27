@@ -1,5 +1,7 @@
 using FluentValidation;
 using MediatR;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VerticalSliceArchitecture.Application.Common;
@@ -11,6 +13,7 @@ using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 namespace VerticalSliceArchitecture.Application.Features.Patients;
 
 [Authorize]
+[Tags("Patients")]
 public class UpdatePatientController : ApiControllerBase
 {
     [HttpPut("/api/patients/{id}")]
@@ -54,10 +57,8 @@ internal sealed class UpdatePatientCommandHandler(
 {
     public async Task<ApiResponse<bool>> Handle(UpdatePatientCommand request, CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(currentUserService.UserId!);
-
         var patient = await context.Patients
-            .FirstOrDefaultAsync(p => p.Id == request.Id && p.UserId == userId, cancellationToken);
+            .FirstOrDefaultAsync(p => p.Id == request.Id && p.CreatedBy == currentUserService.UserId!, cancellationToken);
 
         if (patient is null)
         {

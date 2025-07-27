@@ -1,5 +1,7 @@
 using FluentValidation;
 using MediatR;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VerticalSliceArchitecture.Application.Common;
@@ -9,6 +11,7 @@ using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 
 namespace VerticalSliceArchitecture.Application.Features.Auth;
 
+[Tags("Auth")]
 public class LoginUserController : ApiControllerBase
 {
     [HttpPost("/api/login")]
@@ -20,7 +23,8 @@ public class LoginUserController : ApiControllerBase
 
 public record LoginUserCommand(string Email, string Password) : IRequest<ApiResponse<LoginUserResponse>>;
 
-public record LoginUserResponse(string Token);
+public record LoginUserResponse(string Token, UserDto User);
+public sealed record UserDto(string Email, string? FirstName, string? LastName);
 
 internal sealed class LoginUserCommandValidator : AbstractValidator<LoginUserCommand>
 {
@@ -48,16 +52,19 @@ internal sealed class LoginUserCommandHandler(
 
         if (user is null)
         {
-            throw new ApplicationException("Kullanıcı bulunamadı");
+            throw new AppException("E-posta adresi ile eşleşen bir kullanıcı bulunamadı.");
         }
 
         var valid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+
         if (!valid)
         {
-            return ApiResponse<LoginUserResponse>.Fail("Invalid credentials.");
+            throw new AppException("Şifre geçersiz.");
         }
 
+        var userDto = new UserDto(user.Email, user.FirstName, user.LastName);
+
         var token = tokenGenerator.GenerateToken(user);
-        return ApiResponse<LoginUserResponse>.Success(new LoginUserResponse(token));
+        return ApiResponse<LoginUserResponse>.Success(new LoginUserResponse(token, userDto));
     }
 }

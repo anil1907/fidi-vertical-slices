@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 using ErrorOr;
 
 namespace VerticalSliceArchitecture.Application.Common.Models;
@@ -7,6 +9,7 @@ public class ApiResponse<T>
     public bool IsSuccess { get; private set; }
     public string? Message { get; private set; }
     public T? Data { get; private set; }
+    [JsonIgnore]
     public int StatusCode { get; private set; }
 
     private ApiResponse(T? data, string? message, int statusCode)
