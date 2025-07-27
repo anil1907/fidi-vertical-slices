@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.DependencyInjection;
 
+using VerticalSliceArchitecture.Application.Common.Models;
+using VerticalSliceArchitecture.Application.Features.Auth;
+
 namespace VerticalSliceArchitecture.Application.Common;
 
 [ApiController]
@@ -16,6 +19,30 @@ public abstract class ApiControllerBase : ControllerBase
     private ISender? _mediator;
 
     protected ISender Mediator => _mediator ??= HttpContext.RequestServices.GetService<ISender>()!;
+
+    protected static ObjectResult OkResponse<T>(ApiResponse<T> response)
+    {
+        return new ObjectResult(response)
+        {
+            StatusCode = response.StatusCode,
+        };
+    }
+
+    protected ActionResult<ApiResponse<T>> ApiResult<T>(ApiResponse<T> response)
+    {
+        if (response.IsSuccess)
+        {
+            return Ok(response);
+        }
+
+        return StatusCode(StatusCodes.Status400BadRequest, response);
+    }
+
+    protected ActionResult ApiResult<T>(ErrorOr<T> result)
+    {
+        var response = ApiResponse<T>.From(result);
+        return StatusCode(response.StatusCode, response);
+    }
 
     protected ActionResult Problem(List<Error> errors)
     {

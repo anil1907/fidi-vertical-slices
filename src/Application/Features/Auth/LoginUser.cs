@@ -1,10 +1,10 @@
-using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VerticalSliceArchitecture.Application.Common;
 using VerticalSliceArchitecture.Application.Common.Interfaces;
+using VerticalSliceArchitecture.Application.Common.Models;
 using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 
 namespace VerticalSliceArchitecture.Application.Features.Auth;
@@ -14,12 +14,13 @@ public class LoginUserController : ApiControllerBase
     [HttpPost("/api/login")]
     public async Task<IActionResult> Login(LoginUserCommand command)
     {
-        var result = await Mediator.Send(command);
-        return result.Match(token => Ok(token), Problem);
+        return OkResponse(await Mediator.Send(command));
     }
 }
 
-public record LoginUserCommand(string Email, string Password) : IRequest<ErrorOr<string>>;
+public record LoginUserCommand(string Email, string Password) : IRequest<ApiResponse<LoginUserResponse>>;
+
+public record LoginUserResponse(string Token);
 
 internal sealed class LoginUserCommandValidator : AbstractValidator<LoginUserCommand>
 {
@@ -35,25 +36,25 @@ internal sealed class LoginUserCommandValidator : AbstractValidator<LoginUserCom
 
 internal sealed class LoginUserCommandHandler(
     ApplicationDbContext context,
-    IJwtTokenGenerator tokenGenerator) : IRequestHandler<LoginUserCommand, ErrorOr<string>>
+    IJwtTokenGenerator tokenGenerator) : IRequestHandler<LoginUserCommand, ApiResponse<LoginUserResponse>>
 {
-    public async Task<ErrorOr<string>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<LoginUserResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
         var user = await context.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
 
         if (user is null)
         {
-            return Error.NotFound(description: "User not found.");
+            throw new Exception("test");
         }
 
         var valid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
         if (!valid)
         {
-            return Error.Validation(description: "Invalid credentials.");
+            return ApiResponse<LoginUserResponse>.Fail("Invalid credentials.");
         }
 
         var token = tokenGenerator.GenerateToken(user);
-        return token;
+        return ApiResponse<LoginUserResponse>.Success(new LoginUserResponse(token));
     }
 }

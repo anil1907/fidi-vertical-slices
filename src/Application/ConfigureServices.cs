@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,12 +17,18 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.Configure<ApiBehaviorOptions>(options =>
+        {
+            options.SuppressModelStateInvalidFilter = true;
+        });
+
         services.AddMediatR(options =>
         {
             options.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
 
             options.AddOpenBehavior(typeof(AuthorizationBehaviour<,>));
             options.AddOpenBehavior(typeof(PerformanceBehaviour<,>));
+            options.AddOpenBehavior(typeof(ExceptionHandlingBehaviour<,>));
             options.AddOpenBehavior(typeof(ValidationBehaviour<,>));
         });
 
