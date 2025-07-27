@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 using VerticalSliceArchitecture.Application.Common;
 using VerticalSliceArchitecture.Application.Common.Interfaces;
+using VerticalSliceArchitecture.Application.Common.Models;
 using VerticalSliceArchitecture.Application.Common.Security;
 using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 
@@ -18,25 +19,23 @@ public class GetPatientsController : ApiControllerBase
     [HttpGet("/api/patients")]
     public async Task<IActionResult> Get()
     {
-        var result = await Mediator.Send(new GetPatientsQuery());
-
-        return result.Match(Ok, Problem);
+        return ApiResult(await Mediator.Send(new GetPatientsQuery()));
     }
 }
 
 public record PatientDto(Guid Id, string Name, int Age, string Phone, string Email, string? Notes, DateTime? LastVisit);
 
-public record GetPatientsQuery : IRequest<ErrorOr<List<PatientDto>>>;
+public record GetPatientsQuery : IRequest<ApiResponse<List<PatientDto>>>;
 
 internal sealed class GetPatientsQueryHandler(
     ApplicationDbContext context,
     ICurrentUserService currentUserService)
-    : IRequestHandler<GetPatientsQuery, ErrorOr<List<PatientDto>>>
+    : IRequestHandler<GetPatientsQuery, ApiResponse<List<PatientDto>>>
 {
     private readonly ApplicationDbContext _context = context;
     private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public async Task<ErrorOr<List<PatientDto>>> Handle(GetPatientsQuery request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<List<PatientDto>>> Handle(GetPatientsQuery request, CancellationToken cancellationToken)
     {
         var userId = Guid.Parse(_currentUserService.UserId!);
 
@@ -46,6 +45,6 @@ internal sealed class GetPatientsQueryHandler(
             .Select(p => new PatientDto(p.Id, p.Name, p.Age, p.Phone, p.Email, p.Notes, p.LastVisit))
             .ToListAsync(cancellationToken);
 
-        return patients;
+        return ApiResponse<List<PatientDto>>.Success(patients);
     }
 }

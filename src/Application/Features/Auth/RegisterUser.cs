@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VerticalSliceArchitecture.Application.Common;
+using VerticalSliceArchitecture.Application.Common.Models;
 using VerticalSliceArchitecture.Application.Domain.Users;
 using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 
@@ -14,13 +15,11 @@ public class RegisterUserController : ApiControllerBase
     [HttpPost("/api/register")]
     public async Task<IActionResult> Register(RegisterUserCommand command)
     {
-        var result = await Mediator.Send(command);
-
-        return result.Match(id => Ok(id), Problem);
+        return ApiResult(await Mediator.Send(command));
     }
 }
 
-public sealed record RegisterUserCommand(string Email, string Password, string FirstName, string LastName, string ConfirmPassword) : IRequest<ErrorOr<Guid>>;
+public sealed record RegisterUserCommand(string Email, string Password, string FirstName, string LastName, string ConfirmPassword) : IRequest<ApiResponse<Guid>>;
 
 internal sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {
@@ -51,9 +50,9 @@ internal sealed class RegisterUserCommandValidator : AbstractValidator<RegisterU
     }
 }
 
-internal sealed class RegisterUserCommandHandler(ApplicationDbContext context) : IRequestHandler<RegisterUserCommand, ErrorOr<Guid>>
+internal sealed class RegisterUserCommandHandler(ApplicationDbContext context) : IRequestHandler<RegisterUserCommand, ApiResponse<Guid>>
 {
-    public async Task<ErrorOr<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
         var user = new User
         {
@@ -66,6 +65,6 @@ internal sealed class RegisterUserCommandHandler(ApplicationDbContext context) :
         context.Users.Add(user);
         await context.SaveChangesAsync(cancellationToken);
 
-        return user.Id;
+        return ApiResponse<Guid>.Success(user.Id);
     }
 }

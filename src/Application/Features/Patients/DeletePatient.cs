@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 using VerticalSliceArchitecture.Application.Common;
 using VerticalSliceArchitecture.Application.Common.Interfaces;
+using VerticalSliceArchitecture.Application.Common.Models;
 using VerticalSliceArchitecture.Application.Common.Security;
 using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 
@@ -18,23 +19,21 @@ public class DeletePatientController : ApiControllerBase
     [HttpDelete("/api/patients/{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var result = await Mediator.Send(new DeletePatientCommand(id));
-
-        return result.Match(_ => NoContent(), Problem);
+        return ApiResult(await Mediator.Send(new DeletePatientCommand(id)));
     }
 }
 
-public record DeletePatientCommand(Guid Id) : IRequest<ErrorOr<Success>>;
+public record DeletePatientCommand(Guid Id) : IRequest<ApiResponse<bool>>;
 
 internal sealed class DeletePatientCommandHandler(
     ApplicationDbContext context,
     ICurrentUserService currentUserService)
-    : IRequestHandler<DeletePatientCommand, ErrorOr<Success>>
+    : IRequestHandler<DeletePatientCommand, ApiResponse<bool>>
 {
     private readonly ApplicationDbContext _context = context;
     private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public async Task<ErrorOr<Success>> Handle(DeletePatientCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<bool>> Handle(DeletePatientCommand request, CancellationToken cancellationToken)
     {
         var userId = Guid.Parse(_currentUserService.UserId!);
 
@@ -43,12 +42,12 @@ internal sealed class DeletePatientCommandHandler(
 
         if (patient is null)
         {
-            return Error.NotFound(description: "Patient not found.");
+            return ApiResponse<bool>.Fail("Patient not found.");
         }
 
         _context.Patients.Remove(patient);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return Result.Success;
+        return ApiResponse<bool>.Success(true);
     }
 }

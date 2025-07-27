@@ -14,7 +14,7 @@ public class LoginUserController : ApiControllerBase
     [HttpPost("/api/login")]
     public async Task<IActionResult> Login(LoginUserCommand command)
     {
-        return OkResponse(await Mediator.Send(command));
+        return ApiResult(await Mediator.Send(command));
     }
 }
 

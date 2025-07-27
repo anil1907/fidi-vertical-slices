@@ -55,7 +55,6 @@ public static class DependencyInjection
         services.AddScoped<IDomainEventService, DomainEventService>();
 
         services.AddTransient<IDateTime, DateTimeService>();
-        services.AddTransient<ICsvFileBuilder, CsvFileBuilder>();
 
         services.AddSingleton<ICurrentUserService, CurrentUserService>();
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));

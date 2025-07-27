@@ -20,65 +20,20 @@ public abstract class ApiControllerBase : ControllerBase
 
     protected ISender Mediator => _mediator ??= HttpContext.RequestServices.GetService<ISender>()!;
 
-    protected static ObjectResult OkResponse<T>(ApiResponse<T> response)
+    protected IActionResult ApiResult<T>(ApiResponse<T> response)
     {
-        return new ObjectResult(response)
+        try
         {
-            StatusCode = response.StatusCode,
-        };
-    }
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
 
-    protected ActionResult<ApiResponse<T>> ApiResult<T>(ApiResponse<T> response)
-    {
-        if (response.IsSuccess)
-        {
-            return Ok(response);
+            return StatusCode(StatusCodes.Status400BadRequest, response);
         }
-
-        return StatusCode(StatusCodes.Status400BadRequest, response);
-    }
-
-    protected ActionResult ApiResult<T>(ErrorOr<T> result)
-    {
-        var response = ApiResponse<T>.From(result);
-        return StatusCode(response.StatusCode, response);
-    }
-
-    protected ActionResult Problem(List<Error> errors)
-    {
-        if (errors.Count is 0)
+        catch (Exception exception)
         {
-            return Problem();
+            return StatusCode(StatusCodes.Status500InternalServerError, ApiResponse<T>.Fail(exception.Message, 500));
         }
-
-        if (errors.All(error => error.Type == ErrorType.Validation))
-        {
-            return ValidationProblem(errors);
-        }
-
-        return Problem(errors[0]);
-    }
-
-    private ObjectResult Problem(Error error)
-    {
-        var statusCode = error.Type switch
-        {
-            ErrorType.Conflict => StatusCodes.Status409Conflict,
-            ErrorType.Validation => StatusCodes.Status400BadRequest,
-            ErrorType.NotFound => StatusCodes.Status404NotFound,
-            ErrorType.Unauthorized => StatusCodes.Status403Forbidden,
-            _ => StatusCodes.Status500InternalServerError,
-        };
-
-        return Problem(statusCode: statusCode, title: error.Description);
-    }
-
-    private ActionResult ValidationProblem(List<Error> errors)
-    {
-        var modelStateDictionary = new ModelStateDictionary();
-
-        errors.ForEach(error => modelStateDictionary.AddModelError(error.Code, error.Description));
-
-        return ValidationProblem(modelStateDictionary);
     }
 }

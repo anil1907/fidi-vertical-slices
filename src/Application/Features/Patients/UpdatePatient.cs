@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 using VerticalSliceArchitecture.Application.Common;
 using VerticalSliceArchitecture.Application.Common.Interfaces;
+using VerticalSliceArchitecture.Application.Common.Models;
 using VerticalSliceArchitecture.Application.Common.Security;
 using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 
@@ -21,19 +22,12 @@ public class UpdatePatientController : ApiControllerBase
     [HttpPut("/api/patients/{id}")]
     public async Task<IActionResult> Update(Guid id, UpdatePatientCommand command)
     {
-        if (id != command.Id)
-        {
-            return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Not matching ids");
-        }
-
-        var result = await Mediator.Send(command);
-
-        return result.Match(_ => NoContent(), Problem);
+        return ApiResult(await Mediator.Send(command));
     }
 }
 
 public record UpdatePatientCommand(Guid Id, string Name, int Age, string Phone, string Email, string? Notes, DateTime? LastVisit)
-    : IRequest<ErrorOr<Success>>;
+    : IRequest<ApiResponse<bool>>;
 
 internal sealed class UpdatePatientCommandValidator : AbstractValidator<UpdatePatientCommand>
 {
@@ -56,12 +50,12 @@ internal sealed class UpdatePatientCommandValidator : AbstractValidator<UpdatePa
 internal sealed class UpdatePatientCommandHandler(
     ApplicationDbContext context,
     ICurrentUserService currentUserService)
-    : IRequestHandler<UpdatePatientCommand, ErrorOr<Success>>
+    : IRequestHandler<UpdatePatientCommand, ApiResponse<bool>>
 {
     private readonly ApplicationDbContext _context = context;
     private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public async Task<ErrorOr<Success>> Handle(UpdatePatientCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<bool>> Handle(UpdatePatientCommand request, CancellationToken cancellationToken)
     {
         var userId = Guid.Parse(_currentUserService.UserId!);
 
@@ -70,7 +64,7 @@ internal sealed class UpdatePatientCommandHandler(
 
         if (patient is null)
         {
-            return Error.NotFound(description: "Patient not found.");
+            return ApiResponse<bool>.Fail("Patient not found.");
         }
 
         patient.Name = request.Name;
@@ -82,6 +76,6 @@ internal sealed class UpdatePatientCommandHandler(
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return Result.Success;
+        return ApiResponse<bool>.Success(true);
     }
 }

@@ -9,7 +9,7 @@ public class ApiResponse<T>
     public T? Data { get; private set; }
     public int StatusCode { get; private set; }
 
-    private ApiResponse(T data, string? message, int statusCode)
+    private ApiResponse(T? data, string? message, int statusCode)
     {
         IsSuccess = true;
         Data = data;
@@ -25,7 +25,7 @@ public class ApiResponse<T>
         Data = default;
     }
 
-    public static ApiResponse<T> Success(T data, string message = "İşlem başarılı.", int statusCode = 200)
+    public static ApiResponse<T> Success(T? data, string message = "İşlem başarılı.", int statusCode = 200)
     {
         return new ApiResponse<T>(data, message, statusCode);
     }

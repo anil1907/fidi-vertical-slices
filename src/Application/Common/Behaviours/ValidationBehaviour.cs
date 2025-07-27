@@ -43,7 +43,7 @@ public class ValidationBehaviour<TRequest, TResponse>(IValidator<TRequest>? vali
             throw new InvalidOperationException("Fail method not found on ApiResponse<>.");
         }
 
-        var message = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
+        var message = string.Join(" | ", validationResult.Errors.Select(e => $"{e.ErrorMessage}"));
 
         var result = failMethod.Invoke(null, [message, 400])!;
 

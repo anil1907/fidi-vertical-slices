@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VerticalSliceArchitecture.Application.Common;
+using VerticalSliceArchitecture.Application.Common.Models;
 using VerticalSliceArchitecture.Application.Domain.Patients;
 using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 
@@ -16,16 +17,12 @@ public class CreatePatientController : ApiControllerBase
     [HttpPost("/api/patients")]
     public async Task<IActionResult> Create(CreatePatientCommand command)
     {
-        var result = await Mediator.Send(command);
-
-        return result.Match(
-            id => Ok(id),
-            Problem);
+        return ApiResult(await Mediator.Send(command));
     }
 }
 
 public record CreatePatientCommand(string Name, int Age, string Phone, string Email, string? Notes, DateTime? LastVisit)
-    : IRequest<ErrorOr<Guid>>;
+    : IRequest<ApiResponse<Guid>>;
 
 internal sealed class CreatePatientCommandValidator : AbstractValidator<CreatePatientCommand>
 {
@@ -47,9 +44,9 @@ internal sealed class CreatePatientCommandValidator : AbstractValidator<CreatePa
 
 internal sealed class CreatePatientCommandHandler(
     ApplicationDbContext context)
-    : IRequestHandler<CreatePatientCommand, ErrorOr<Guid>>
+    : IRequestHandler<CreatePatientCommand, ApiResponse<Guid>>
 {
-    public async Task<ErrorOr<Guid>> Handle(CreatePatientCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<Guid>> Handle(CreatePatientCommand request, CancellationToken cancellationToken)
     {
         var patient = new Patient
         {
@@ -64,6 +61,6 @@ internal sealed class CreatePatientCommandHandler(
         context.Patients.Add(patient);
         await context.SaveChangesAsync(cancellationToken);
 
-        return patient.Id;
+        return ApiResponse<Guid>.Success(patient.Id);
     }
 }
