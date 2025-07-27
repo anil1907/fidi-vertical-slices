@@ -28,9 +28,12 @@ internal sealed class LoginUserCommandValidator : AbstractValidator<LoginUserCom
     {
         RuleFor(c => c.Email)
             .NotEmpty()
-            .EmailAddress();
+            .WithMessage("Email boş olamaz")
+            .EmailAddress()
+            .WithMessage("Uygun bir email adresi giriniz");
         RuleFor(c => c.Password)
-            .NotEmpty();
+            .NotEmpty()
+            .WithMessage("Şifre boş olamaz");
     }
 }
 
@@ -45,7 +48,7 @@ internal sealed class LoginUserCommandHandler(
 
         if (user is null)
         {
-            throw new Exception("test");
+            throw new ApplicationException("Kullanıcı bulunamadı");
         }
 
         var valid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);

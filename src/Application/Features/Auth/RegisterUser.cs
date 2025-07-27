@@ -23,12 +23,8 @@ public sealed record RegisterUserCommand(string Email, string Password, string F
 
 internal sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {
-    private readonly ApplicationDbContext _context;
-
     public RegisterUserCommandValidator(ApplicationDbContext context)
     {
-        _context = context;
-
         RuleFor(c => c.Email)
             .NotEmpty()
             .EmailAddress();
@@ -36,17 +32,11 @@ internal sealed class RegisterUserCommandValidator : AbstractValidator<RegisterU
         RuleFor(c => c.Password)
             .MinimumLength(6);
 
-        RuleFor(c => c.Email)
-            .MustAsync(BeUniqueEmail).WithMessage("Email already exists.");
+        RuleFor(c => c.Email);
 
         RuleFor(c => c.ConfirmPassword)
             .Equal(c => c.Password)
             .WithMessage("Confirm password must match the password.");
-    }
-
-    private Task<bool> BeUniqueEmail(string email, CancellationToken cancellationToken)
-    {
-        return _context.Users.AllAsync(u => u.Email != email, cancellationToken);
     }
 }
 
@@ -54,6 +44,13 @@ internal sealed class RegisterUserCommandHandler(ApplicationDbContext context) :
 {
     public async Task<ApiResponse<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
+        var existingUser = await context.Users.AnyAsync(u => u.Email == request.Email, cancellationToken);
+
+        if (existingUser)
+        {
+            throw new ApplicationException("Email adresi sistemde mevcut");
+        }
+
         var user = new User
         {
             Email = request.Email,

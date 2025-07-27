@@ -1,13 +1,7 @@
-using ErrorOr;
-
 using FluentValidation;
-
 using MediatR;
-
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
 using VerticalSliceArchitecture.Application.Common;
 using VerticalSliceArchitecture.Application.Common.Interfaces;
 using VerticalSliceArchitecture.Application.Common.Models;
@@ -35,15 +29,21 @@ internal sealed class UpdatePatientCommandValidator : AbstractValidator<UpdatePa
     {
         RuleFor(c => c.Name)
             .NotEmpty()
-            .MaximumLength(200);
+            .WithMessage("İsim alanı boş bırakılamaz.")
+            .MaximumLength(200)
+            .WithMessage("İsim alanı en fazla 200 karakter olabilir.");
 
         RuleFor(c => c.Phone)
             .NotEmpty()
-            .MaximumLength(50);
+            .WithMessage("Telefon numarası boş bırakılamaz.")
+            .MaximumLength(50)
+            .WithMessage("Telefon numarası en fazla 50 karakter olabilir.");
 
         RuleFor(c => c.Email)
             .NotEmpty()
-            .EmailAddress();
+            .WithMessage("E-posta adresi boş bırakılamaz.")
+            .EmailAddress()
+            .WithMessage("Geçerli bir e-posta adresi giriniz.");
     }
 }
 
@@ -52,14 +52,11 @@ internal sealed class UpdatePatientCommandHandler(
     ICurrentUserService currentUserService)
     : IRequestHandler<UpdatePatientCommand, ApiResponse<bool>>
 {
-    private readonly ApplicationDbContext _context = context;
-    private readonly ICurrentUserService _currentUserService = currentUserService;
-
     public async Task<ApiResponse<bool>> Handle(UpdatePatientCommand request, CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(_currentUserService.UserId!);
+        var userId = Guid.Parse(currentUserService.UserId!);
 
-        var patient = await _context.Patients
+        var patient = await context.Patients
             .FirstOrDefaultAsync(p => p.Id == request.Id && p.UserId == userId, cancellationToken);
 
         if (patient is null)
@@ -74,7 +71,7 @@ internal sealed class UpdatePatientCommandHandler(
         patient.Notes = request.Notes;
         patient.LastVisit = request.LastVisit;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<bool>.Success(true);
     }

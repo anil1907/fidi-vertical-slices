@@ -30,15 +30,21 @@ internal sealed class CreatePatientCommandValidator : AbstractValidator<CreatePa
     {
         RuleFor(c => c.Name)
             .NotEmpty()
-            .MaximumLength(200);
+            .WithMessage("İsim alanı boş bırakılamaz.")
+            .MaximumLength(200)
+            .WithMessage("İsim alanı en fazla 200 karakter olabilir.");
 
         RuleFor(c => c.Phone)
             .NotEmpty()
-            .MaximumLength(50);
+            .WithMessage("Telefon numarası boş bırakılamaz.")
+            .MaximumLength(50)
+            .WithMessage("Telefon numarası en fazla 50 karakter olabilir.");
 
         RuleFor(c => c.Email)
             .NotEmpty()
-            .EmailAddress();
+            .WithMessage("E-posta adresi boş bırakılamaz.")
+            .EmailAddress()
+            .WithMessage("Geçerli bir e-posta adresi giriniz.");
     }
 }
 

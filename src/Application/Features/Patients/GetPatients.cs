@@ -32,14 +32,11 @@ internal sealed class GetPatientsQueryHandler(
     ICurrentUserService currentUserService)
     : IRequestHandler<GetPatientsQuery, ApiResponse<List<PatientDto>>>
 {
-    private readonly ApplicationDbContext _context = context;
-    private readonly ICurrentUserService _currentUserService = currentUserService;
-
     public async Task<ApiResponse<List<PatientDto>>> Handle(GetPatientsQuery request, CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(_currentUserService.UserId!);
+        var userId = Guid.Parse(currentUserService.UserId!);
 
-        var patients = await _context.Patients
+        var patients = await context.Patients
             .Where(p => p.UserId == userId)
             .OrderBy(p => p.Name)
             .Select(p => new PatientDto(p.Id, p.Name, p.Age, p.Phone, p.Email, p.Notes, p.LastVisit))

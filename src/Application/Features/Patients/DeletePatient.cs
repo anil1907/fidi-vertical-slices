@@ -30,23 +30,20 @@ internal sealed class DeletePatientCommandHandler(
     ICurrentUserService currentUserService)
     : IRequestHandler<DeletePatientCommand, ApiResponse<bool>>
 {
-    private readonly ApplicationDbContext _context = context;
-    private readonly ICurrentUserService _currentUserService = currentUserService;
-
     public async Task<ApiResponse<bool>> Handle(DeletePatientCommand request, CancellationToken cancellationToken)
     {
-        var userId = Guid.Parse(_currentUserService.UserId!);
+        var userId = Guid.Parse(currentUserService.UserId!);
 
-        var patient = await _context.Patients
+        var patient = await context.Patients
             .FirstOrDefaultAsync(p => p.Id == request.Id && p.UserId == userId, cancellationToken);
 
         if (patient is null)
         {
-            return ApiResponse<bool>.Fail("Patient not found.");
+            return ApiResponse<bool>.Fail("Danışan bulunamadı.");
         }
 
-        _context.Patients.Remove(patient);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Patients.Remove(patient);
+        await context.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<bool>.Success(true);
     }
