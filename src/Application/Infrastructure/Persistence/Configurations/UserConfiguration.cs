@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 using VerticalSliceArchitecture.Application.Domain.Users;
 
 namespace VerticalSliceArchitecture.Application.Infrastructure.Persistence.Configurations;
@@ -22,5 +23,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.LastName)
             .IsRequired();
+
+        builder.Property(u => u.RefreshToken);
+
+        builder.Property(u => u.RefreshTokenExpires);
     }
 }

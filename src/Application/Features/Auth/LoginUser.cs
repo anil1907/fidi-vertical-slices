@@ -1,12 +1,18 @@
+using System.Security.Cryptography;
+
 using FluentValidation;
+
 using MediatR;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+
 using VerticalSliceArchitecture.Application.Common;
 using VerticalSliceArchitecture.Application.Common.Interfaces;
 using VerticalSliceArchitecture.Application.Common.Models;
+using VerticalSliceArchitecture.Application.Infrastructure.Authentication;
 using VerticalSliceArchitecture.Application.Infrastructure.Persistence;
 
 namespace VerticalSliceArchitecture.Application.Features.Auth;
@@ -23,7 +29,7 @@ public class LoginUserController : ApiControllerBase
 
 public record LoginUserCommand(string Email, string Password) : IRequest<ApiResponse<LoginUserResponse>>;
 
-public record LoginUserResponse(string Token, UserDto User);
+public record LoginUserResponse(string AccessToken, string RefreshToken, int ExpiresIn, UserDto User);
 public sealed record UserDto(string Email, string? FirstName, string? LastName);
 
 internal sealed class LoginUserCommandValidator : AbstractValidator<LoginUserCommand>
@@ -43,7 +49,8 @@ internal sealed class LoginUserCommandValidator : AbstractValidator<LoginUserCom
 
 internal sealed class LoginUserCommandHandler(
     ApplicationDbContext context,
-    IJwtTokenGenerator tokenGenerator) : IRequestHandler<LoginUserCommand, ApiResponse<LoginUserResponse>>
+    IJwtTokenGenerator tokenGenerator,
+    IOptions<JwtSettings> options) : IRequestHandler<LoginUserCommand, ApiResponse<LoginUserResponse>>
 {
     public async Task<ApiResponse<LoginUserResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
@@ -62,9 +69,17 @@ internal sealed class LoginUserCommandHandler(
             throw new AppException("Şifre geçersiz.");
         }
 
+        var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpires = DateTime.UtcNow.AddDays(7);
+
+        await context.SaveChangesAsync(cancellationToken);
+
         var userDto = new UserDto(user.Email, user.FirstName, user.LastName);
 
-        var token = tokenGenerator.GenerateToken(user);
-        return ApiResponse<LoginUserResponse>.Success(new LoginUserResponse(token, userDto));
+        var accessToken = tokenGenerator.GenerateToken(user);
+        var expiresIn = options.Value.ExpiryMinutes * 60;
+
+        return ApiResponse<LoginUserResponse>.Success(new LoginUserResponse(accessToken, refreshToken, expiresIn, userDto));
     }
 }

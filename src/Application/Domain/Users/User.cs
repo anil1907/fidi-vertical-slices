@@ -8,4 +8,6 @@ public class User : AuditableEntity
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string PasswordHash { get; set; } = string.Empty;
+    public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpires { get; set; }
 }
